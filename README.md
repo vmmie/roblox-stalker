@@ -1,101 +1,192 @@
-#  Roblox-Stalker
+# Roblox Monitor Discord Bot
 
-A Python script that monitors Roblox user activity and sends real-time Discord webhook notifications when changes are detected.
+A Discord bot that monitors Roblox user activity and creates dedicated channels for each monitored user. Get real-time notifications about friends, followers, game activity, and more!
 
 ## ✨ Features
 
-- **Friends Tracking**: Monitors friend additions and removals with usernames (up to 200 friends due to Roblox API limitations)
+- **Discord Bot Control**: Control monitoring through Discord slash commands
+- **Automatic Channel Creation**: Creates a dedicated channel for each monitored user
+- **Friends Tracking**: Monitors friend additions and removals with usernames
 - **Followers Count**: Tracks follower count changes with +/- differences
 - **Online Status**: Detects when users go online/offline or enter Roblox Studio
 - **Game Activity**: Monitors what game the user is playing and detects game switches
-- **Discord Notifications**: Sends embedded messages with optional user pings
-- **Automatic Fallback**: Switches to count-only tracking if detailed tracking fails
+- **Game History**: Tracks and displays game history in a local database
+- **User Profiles**: View user bio, join date, connections, and communities
+- **Communities**: View all groups/communities a user is in, sorted by member count
+- **Multi-User Support**: Monitor multiple users simultaneously
 
 ## 📋 Requirements
 
-- Python 3.7+
+- Python 3.8+
+- Discord Bot Token
+- `discord.py` library
 - `requests` library
 
 ## 🚀 Installation
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/vmmie/roblox-stalker.git
+git clone https://github.com/Jahbas/roblox-stalker.git
 cd roblox-stalker
 ```
 
 2. Install dependencies:
 ```bash
-pip install requests
+pip install -r requirements.txt
 ```
 
-## ⚙️ Configuration
+3. Create a Discord Bot:
+   - Go to https://discord.com/developers/applications
+   - Create a new application
+   - Go to "Bot" section and create a bot
+   - Copy the bot token
+   - Enable "Message Content Intent" and "Server Members Intent" in Privileged Gateway Intents
 
-Open `main.py` and configure the following variables:
+4. Invite the bot to your server:
+   - Go to OAuth2 → URL Generator
+   - Select "bot" and "applications.commands" scopes
+   - Select "Administrator" permissions (or specific permissions: Manage Channels, Send Messages, Embed Links)
+   - Copy the generated URL and open it in your browser
+   - Select your server and authorize
 
-```python
-ROBLOX_USER_ID = "1234567890"  # Target Roblox user ID
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/..."  # Your webhook URL
-DISCORD_USER_ID_TO_PING = "YOUR_DISCORD_USER_ID"  # Discord user ID to ping (optional)
-CHECK_INTERVAL = 60  # Seconds between checks
-DETAILED_FRIENDS_TRACKING = True  # Set to False for count-only tracking
-```
-
-### Getting Required Information
-
-**Roblox User ID:**
-- Visit the user's profile: `https://www.roblox.com/users/[USER_ID]/profile`
-- Copy the numeric ID from the URL
-
-**Discord Webhook URL:**
-- Server Settings → Integrations → Webhooks → Create Webhook
-- Copy the webhook URL
-
-**Discord User ID:**
-- Enable Developer Mode (User Settings → Advanced)
-- Right-click your username → Copy User ID
+5. Configure the bot:
+   - Copy `config.py.example` to `config.py` (or create `config.py` from the example)
+   - Open `config.py`
+   - Set `DISCORD_BOT_TOKEN` to your bot token
+   - Optionally set `GUILD_ID` to a specific server ID (or leave as None to use the first server)
+   - Adjust `MONITORING_CATEGORY_NAME` if desired (default: "Roblox Monitoring")
+   - Set `CHECK_INTERVAL` for monitoring frequency (default: 60 seconds)
 
 ## 🎯 Usage
 
-Run the script:
+### Starting the Bot
+
+Run the bot:
 ```bash
 python main.py
 ```
 
-Stop monitoring with `Ctrl+C`.
+The bot will:
+- Log in to Discord
+- Initialize the database
+- Sync slash commands
+- Start monitoring any previously added users
 
-## 📊 Example Notifications
+### Discord Commands
 
-- `vmset added a new friend: vmsways`
-- `vmset followers count changed: 150 → 155 (+5)`
-- `vmset status changed: Offline → Online`
-- `vmset started playing: Blade Ball!`
-- `vmset switched games: Blade Ball → Random Condo Game`
+All commands are slash commands (type `/` in Discord):
 
-## ⚠️ Known Limitations
+- `/adduser <roblox_id>` - Add a Roblox user to monitor and create a channel
+- `/removeuser <roblox_id>` - Remove a user from monitoring
+- `/listusers` - List all currently monitored users
+- `/userinfo <roblox_id>` - Get detailed information about a user
+- `/communities <roblox_id>` - View all communities/groups for a user
+- `/gamehistory <roblox_id> [limit]` - View game history (default: 25 games)
+- `/debugpresence <roblox_id>` - Debug presence data for a user
+- `/sync` - Manually sync slash commands
+- `/startmonitoring` - Start monitoring all users
+- `/stopmonitoring` - Stop monitoring
 
-- Username data may not always be available (shows `User_ID` as fallback)
-- Rate limiting may occur with very frequent checks
+### Example Workflow
 
-## 🔧 Troubleshooting
+1. Add a user to monitor:
+   ```
+   /adduser 1151641799
+   ```
+   This will:
+   - Create a channel for the user
+   - Send initial profile information
+   - Start tracking their activity
 
-**"User_ID" shown instead of names:**
-- This happens when the Roblox API doesn't return username data
-- Set `DETAILED_FRIENDS_TRACKING = False` to use count-only tracking
+2. View user information:
+   ```
+   /userinfo 1151641799
+   ```
 
-**Friends tracking not working:**
-- Ensure the user's profile is public
-- Try increasing `CHECK_INTERVAL` to avoid rate limits
-- Enable count-only mode as fallback
+3. View communities:
+   ```
+   /communities 1151641799
+   ```
 
-## 📝 License
+4. View game history:
+   ```
+   /gamehistory 1151641799 50
+   ```
 
-MIT License - Feel free to use and modify!
+5. List all monitored users:
+   ```
+   /listusers
+   ```
 
-## 🤝 Contributing
+## 📊 Channel Structure
 
-Contributions, issues, and feature requests are welcome!
+When you add a user, the bot creates:
+- A category: "Roblox Monitoring" (or your custom name)
+- A channel: `{username}-{user_id}` (e.g., `sologamer1919-1151641799`)
 
----
+All activity notifications for that user will be sent to their dedicated channel.
 
-**Note:** This project uses public Roblox APIs and respects rate limits. Always use responsibly and in accordance with Roblox's Terms of Service.
+## 🗄️ Database
+
+The bot uses a local SQLite database (`roblox_monitor.db`) to store:
+- Game history
+- User information
+- Channel mappings
+- Monitoring status
+
+Data persists between bot restarts.
+
+## ⚙️ Configuration Options
+
+In `config.py`:
+
+- `DISCORD_BOT_TOKEN`: Your Discord bot token (required)
+- `GUILD_ID`: Specific server ID (None = use first server)
+- `MONITORING_CATEGORY_NAME`: Category name for channels
+- `CHECK_INTERVAL`: Seconds between checks (default: 60)
+- `DETAILED_FRIENDS_TRACKING`: Track individual friends (True) or just count (False)
+- `COMMAND_PREFIX`: Prefix for text commands (default: "!")
+
+## 🔒 Permissions Required
+
+The bot needs the following permissions:
+- **Manage Channels**: To create channels and categories
+- **Send Messages**: To send notifications
+- **Embed Links**: To send rich embeds
+- **Read Message History**: To read commands
+
+## 📝 Notes
+
+- The bot automatically starts monitoring when users are added
+- Channels are created automatically but not deleted when users are removed (you can manually delete them)
+- Game history is stored permanently in the database
+- Monitoring continues even after bot restarts (if users are in database)
+
+## 🛠️ Troubleshooting
+
+**Bot doesn't respond to commands:**
+- Make sure the bot has the "applications.commands" scope
+- Wait a few minutes after inviting for commands to sync
+- Try using `/sync` command or restarting the bot
+
+**Can't create channels:**
+- Check bot permissions in server settings
+- Ensure bot role is above the category in hierarchy
+
+**Monitoring not working:**
+- Use `/startmonitoring` command
+- Check if users are added with `/listusers`
+- Verify CHECK_INTERVAL is not too low (may hit rate limits)
+
+**Game detection not working:**
+- Use `/debugpresence <roblox_id>` to see what the API returns
+- Check if the user is actually in a game (status should be "In Game")
+- Verify the Roblox API is returning universeId or placeId
+
+## 📄 License
+
+MIT License - See LICENSE file for details.
+
+## 🙏 Credits
+
+Original concept by https://github.com/vmmie

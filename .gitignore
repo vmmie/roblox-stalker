@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+roblox_monitor.db
+*.db
+.env
+config.py
+
